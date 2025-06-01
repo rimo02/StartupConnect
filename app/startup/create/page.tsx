@@ -12,9 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectItem } from "@/components/ui/select";
 import { SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { generateSlug } from "@/lib/utils";
+import { generateSlug, uploadImageToFirebase } from "@/lib/utils";
+import { collection, addDoc, Timestamp } from 'firebase/firestore'
+import { db } from "@/lib/firebase";
 
 const formSchema = z.object({
     name: z.string().min(2, { message: "Startup name must be at least 2 characters." }),
@@ -25,7 +26,9 @@ const formSchema = z.object({
     location: z.string().min(2, { message: "Location must be at least 2 characters." }),
     website: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal("")),
     teamSize: z.coerce.number().int().min(1, { message: "Team size must be at least 1." }),
-    image: z.any().optional(),
+    image: z.instanceof(File).optional().nullable().refine((file) => !file || file.size <= 5 * 1024 * 1024, {
+        message: "Image must be less than 5MB.",
+    }),
     founderName: z.string(),
 });
 
@@ -41,7 +44,7 @@ export default function Page() {
             pitch: "",
             industry: "",
             fundingStage: "",
-            image: "",
+            image: null,
             location: "",
             website: "",
             teamSize: 1,
@@ -49,27 +52,30 @@ export default function Page() {
         },
     });
     const [previewImage, setPreviewImage] = useState<string | null>(null);
-    const handleSubmit = async (values: z.infer<typeof formSchema>) => {
-        if (!session?.user?.id) return;
+    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+        if (!session?.user?.name) return;
         setIsSubmitting(true)
         try {
-            const { data, error } = await supabase.from('startups').insert({
+            let imageUrl: string | null = null;
+            if (values.image instanceof File) {
+                imageUrl = await uploadImageToFirebase(values.image);
+            }
+            const slug = generateSlug(values.name)
+            await addDoc(collection(db, "startups"), {
                 name: values.name,
-                slug: generateSlug(values.name),
+                slug: slug,
                 description: values.description,
-                image: values.image,
                 pitch: values.pitch,
                 industry: values.industry,
                 fundingStage: values.fundingStage,
                 location: values.location,
                 website: values.website || null,
-                founderId: session.user.id,
+                image: imageUrl,
                 founderName: values.founderName,
                 teamSize: values.teamSize,
-            }).select().single();
-            if (error) throw error
-            router.push(`/startups/${data.id}`);
-
+                createdAt: Timestamp.now(),
+            })
+            router.push(`/startups/${slug}`);
         } catch (error) {
             console.error("Error creating startup:", error);
         } finally {
@@ -104,7 +110,7 @@ export default function Page() {
                         </CardDescription>
                     </CardHeader>
                     <Form {...form}>
-                        <form className="px-6 pb-6 space-y-6" onSubmit={form.handleSubmit(() => handleSubmit)}>
+                        <form className="px-6 pb-6 space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
                             <CardContent className="space-y-6">
                                 <FormField
                                     control={form.control}
@@ -141,7 +147,7 @@ export default function Page() {
                                 <FormField
                                     control={form.control}
                                     name="image"
-                                    render={({ field }) => (
+                                    render={({ }) => (
                                         <FormItem>
                                             <FormLabel>Startup Cover Image</FormLabel>
 
@@ -167,11 +173,12 @@ export default function Page() {
                                                                 setPreviewImage(reader.result as string);
                                                             };
                                                             reader.readAsDataURL(file);
-                                                            field.onChange(file);
                                                         }
+                                                        form.setValue("image", file || null);
                                                     }}
                                                 />
                                             </FormControl>
+
                                             <FormDescription>Upload an image that represents your startup.</FormDescription>
                                             <FormMessage />
                                         </FormItem>
@@ -316,7 +323,7 @@ export default function Page() {
                                 <Button variant="outline" type="button" onClick={() => router.back()}>
                                     Cancel
                                 </Button>
-                                <Button type="submit" disabled={isSubmitting}>
+                                <Button type={`submit`} disabled={isSubmitting}>
                                     {isSubmitting ? "Creating..." : "Create Startup"}
                                 </Button>
                             </CardFooter>

@@ -3,7 +3,7 @@ export type Startup = {
   name: string;
   slug: string;
   description: string;
-  image: string | null | undefined;
+  image: string;
   pitch: string;
   industry: string;
   fundingStage:
@@ -15,7 +15,6 @@ export type Startup = {
     | "established";
   location: string;
   website?: string;
-  founderId: string;
   founderName: string;
   teamSize: number;
   createdAt: string;

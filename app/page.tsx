@@ -1,9 +1,13 @@
+"use client"
+import FeaturedStartups from "@/components/sections/featuredStartups";
 import HeroSection from "@/components/sections/hero";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader } from "@/components/ui/card";
 import { ArrowRight, Briefcase, Rocket, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   return (
     <div className="flex flex-col min-h-screen">
       <HeroSection />
@@ -51,16 +55,15 @@ export default function Home() {
               </Card>
             ))}
           </div>
-            <div className="mt-12 flex items-center justify-center">
-            <Button className="flex gap-2 items-" size={`lg`}>
+          <div className="mt-12 flex items-center justify-center mb-10">
+            <Button className="flex gap-2 items-" size={`lg`} onClick={() => router.push(`/startup/`)}>
               Explore Startups
-              <ArrowRight/>
+              <ArrowRight />
             </Button>
-            </div>
-
+          </div>
         </div>
-
       </section>
+      <FeaturedStartups />
     </div>
   );
 }
