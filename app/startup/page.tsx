@@ -11,13 +11,16 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { motion } from 'framer-motion'
+import { useDebounce } from 'use-debounce';
 
 export default function StartupPage() {
     const router = useRouter();
     const [industry, setIndustry] = useState('all');
     const [fundingStage, setFundingStage] = useState("all");
-    const filters = useMemo(() => ({ industry, fundingStage }), [industry, fundingStage]);
+    const [search, setSearch] = useState('');
+    const [debouncedSearch] = useDebounce(search, 1000);
 
+    const filters = useMemo(() => ({ industry, fundingStage, search: debouncedSearch }), [industry, fundingStage, debouncedSearch]);
     const { postList, loading, hasMore, lastPostRef } = useInfiniteScroll(`startups`, filters);
 
     return (
@@ -34,12 +37,13 @@ export default function StartupPage() {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div className="relative w-full col-span-1 sm:col-span-2">
                     <Search className="absolute left-2.5 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                         placeholder="Search startups..."
                         className="w-full pl-8"
+                        onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
 
@@ -82,7 +86,7 @@ export default function StartupPage() {
                 </div>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-5'>
+            <div className='grid grid-cols-1 lg:grid-cols-3 gap-5'>
                 {postList.map((startup, index) => (
                     <motion.div
                         key={startup.id}
