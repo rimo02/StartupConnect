@@ -18,5 +18,6 @@ export type Startup = {
   founderName: string;
   teamSize: number;
   createdAt: string;
+  createdBy: string;
   updatedAt: string;
 };

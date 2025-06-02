@@ -18,3 +18,9 @@ export async function uploadImageToFirebase(file: File): Promise<string> {
   const snapshot = await uploadBytes(fileRef, file);
   return await getDownloadURL(snapshot.ref);
 }
+
+export async function uploadCVToFirebase(file: File): Promise<string> {
+  const fileRef = ref(storage, `cvs/${Date.now()}-${file.name}`);
+  const snapshot = await uploadBytes(fileRef, file);
+  return await getDownloadURL(snapshot.ref);
+}

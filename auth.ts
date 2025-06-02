@@ -30,7 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, profile }) {
       if (profile) {
         const user = await User.findOne({ githubId: profile.id });
-        if (!user) {
+        if (user) {
           token.id = user._id.toString();
           token.name = user.name;
           token.email = user.email;

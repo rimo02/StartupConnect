@@ -11,11 +11,14 @@ import Link from "next/link";
 import type { Startup } from "@/lib/types";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useSession } from "next-auth/react";
+import JobList from "@/components/sections/job-list";
 
 export default function StartupDetailsPage() {
     const { slug } = useParams();
     const [startup, setStartup] = useState<Startup>();
     const [loading, setLoading] = useState(true);
+    const { data: session } = useSession();
 
     useEffect(() => {
         async function fetchStartupDetails() {
@@ -68,7 +71,7 @@ export default function StartupDetailsPage() {
             {/* Header */}
             <div className="mb-8">
                 <Button variant="outline" asChild className="mb-6">
-                    <Link href="/startups">
+                    <Link href="/startup">
                         <ChevronLeft className="mr-2 h-4 w-4" />
                         Back to Startups
                     </Link>
@@ -117,7 +120,6 @@ export default function StartupDetailsPage() {
                 </div>
             </div>
 
-            {/* Main Content */}
             <Tabs defaultValue="about" className="space-y-6">
                 <TabsList>
                     <TabsTrigger value="about">About</TabsTrigger>
@@ -200,15 +202,14 @@ export default function StartupDetailsPage() {
                             <CardDescription>Join our team and help us build the future</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-center py-12">
-                                <h3 className="text-lg font-medium mb-2">No open positions</h3>
-                                <p className="text-muted-foreground mb-4">
-                                    There are currently no open positions at {startup.name}.
-                                </p>
-                                <Button variant="outline" asChild>
-                                    <Link href="/positions">Browse All Positions</Link>
-                                </Button>
-                            </div>
+                            {session?.user?.id && (
+                                <div className="mb-6">
+                                    <Link href={`/startup/${slug}/create-job`}>
+                                        <Button variant="outline">Post New Job</Button>
+                                    </Link>
+                                </div>
+                            )}
+                            <JobList slug={startup.slug} />
                         </CardContent>
                     </Card>
                 </TabsContent>

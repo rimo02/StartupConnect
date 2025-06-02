@@ -74,8 +74,9 @@ export default function Page() {
                 founderName: values.founderName,
                 teamSize: values.teamSize,
                 createdAt: Timestamp.now(),
+                createdBy: session?.user?.id,
             })
-            router.push(`/startups/${slug}`);
+            router.push(`/startup/${slug}`);
         } catch (error) {
             console.error("Error creating startup:", error);
         } finally {
