@@ -48,6 +48,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: token.email as string,
         username: token.username as string,
         image: token.picture as string,
+        emailVerified:null,
       };
       return session;
     },

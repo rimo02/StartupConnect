@@ -6,6 +6,13 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 
+interface Job {
+  jobName: string;
+  description: string;
+  payScale: string;
+  skills: string;
+}
+
 export default function JobDetailsPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -13,14 +20,14 @@ export default function JobDetailsPage() {
 
   console.log(slug, jobId);
   const router = useRouter();
-  const [job, setJob] = useState<any>(null);
+  const [job, setJob] = useState<Job | null>(null);
 
   useEffect(() => {
     const fetchJob = async () => {
       const jobRef = doc(db, "jobs", jobId as string);
       const snapshot = await getDoc(jobRef);
       if (snapshot.exists()) {
-        setJob(snapshot.data());
+        setJob(snapshot.data() as Job);
       }
     };
     fetchJob();

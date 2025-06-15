@@ -3,10 +3,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Startup } from "@/lib/types/index";
 import {
   collection,
+  DocumentData,
   getDocs,
   limit,
   query,
   QueryConstraint,
+  QueryDocumentSnapshot,
   startAfter,
   where,
 } from "firebase/firestore";
@@ -18,7 +20,8 @@ export function useInfiniteScroll(
   pageSize = 12
 ) {
   const [postList, setPostList] = useState<Startup[]>([]);
-  const [lastVisible, setLastVisible] = useState(null);
+  const [lastVisible, setLastVisible] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -76,7 +79,7 @@ export function useInfiniteScroll(
           setPostList((prev) => [...prev, ...filteredData]);
         }
 
-        setLastVisible(snapShot.docs[snapShot.docs.length - 1] || null);
+        setLastVisible(snapShot.docs[snapShot.docs.length - 1]);
       } catch (error) {
         console.error("Failed to load Posts:", error);
         setHasMore(false);
